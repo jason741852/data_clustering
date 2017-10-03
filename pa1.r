@@ -8,8 +8,7 @@ normalize <- function(x) {
 
 mydata = read.csv("wine.csv")
 mydata.label = mydata[,c(1)] # wine labels
-mydata.label
-within(mydata, rm("Wine"))
+removeLabel = within(mydata, rm("Wine"))
 #mydata = as.data.frame(lapply(mydata, normalize))
 #mydata$Proline <- with(mydata, (Proline - min(Proline)) / (max(Proline) - min(Proline)))
 #mydata$Mg <- with(mydata, (Mg - min(Mg)) / (max(Mg) - min(Mg)))
@@ -22,13 +21,15 @@ for (n_cluster in 2:5){
   fit = kmeans(mydata,n_cluster)
   agg = aggregate(mydata,by=list(fit$cluster),FUN=mean)
   mydata = data.frame(mydata, fit$cluster)
+  sil_title = paste("silhouette score for k = ", n_cluster)
+  k_title = paste("k-means clustering for k = ", n_cluster)
   print(ggplot(mydata,aes(mydata[,2],mydata[,14], color = factor(mydata[,15+n_cluster-2]))) +
   geom_point() +
   scale_color_manual(values = c("red", "black", "green","blue","purple")) +
-  ggtitle("k-means clustering without normalization"))
+  ggtitle(k_title))
   #fit$cluster, use "$" to access dataframe columns
   sil = silhouette(fit$cluster,dist(mydata))
-  print(plot(sil))
+  print(plot(sil, main=sil_title))
 }
 mydata_H.use = mydata_H[,c(2,14)]
 medians = apply(mydata_H.use,2,median)
@@ -49,7 +50,9 @@ plot(mydata_H.hclust_single, main='Single Linkage Dendrogram')
 
 mydata.two_means = kmeans(mydata,3)
 avg_linkage = cutree(mydata_H.hclust_average, k=3)
+print("Rand index of average linkage: ")
 cluster_similarity(mydata.label,avg_linkage)
+print("Rand index of k-means clustering with k=3: ")
 cluster_similarity(mydata.label,mydata.two_means$cluster)
 
 
